@@ -22,12 +22,41 @@ class RunBinSh(object):
 
 class ReconstructorWithMorePickling(object):
     def __reduce__(self):
-        return (spickle._reconstructor, (pickle.Unpickler, str, StringIO.StringIO("csubprocess\nPopen\np0\n((S'/bin/ls'\np1\nS'/tmp'\np2\ntp3\ntp4\nRp5.")))
+        return (spickle._reconstructor, (pickle.Unpickler, str, StringIO.StringIO(
+            "csubprocess\nPopen\np0\n((S'/bin/ls'\np1\nS'/tmp'\np2\ntp3\ntp4\nRp5.")))
 
 
 class LegitimateGlobalAssignment(object):
     def __init__(self):
         self.k = spickle.HIGHEST_PROTOCOL
+
+
+class HasDict(object):
+    def __init__(self):
+        self.d = {"a": 5, "b": "asdagf"}
+
+
+class TestBasicFunctionality(unittest.TestCase):
+    def test_integer(self):
+        self.assertEqual(5, spickle.loads(pickle.dumps(5)))
+
+    def test_string(self):
+        self.assertEqual("ohai ;)", spickle.loads(pickle.dumps("ohai ;)")))
+
+    def test_tuple(self):
+        self.assertEqual((1, 3, ("hello", 5.0)), spickle.loads(pickle.dumps((1, 3, ("hello", 5.0)))))
+
+    def test_list(self):
+        l = [1, 2, 3, 4, 5, "hello", (9, 8, 3)]
+        self.assertEqual(l, spickle.loads(pickle.dumps(l)))
+
+    def test_dictionary(self):
+        d = {"a": 1, "b": 2, "c": 3}
+        self.assertEqual(d, spickle.loads(pickle.dumps(d)))
+
+    def test_object_with_dict(self):
+        d = HasDict()
+        self.assertEqual(d.d, spickle.loads(pickle.dumps(d)).d)
 
 
 class TestGetInitArgs(unittest.TestCase):
@@ -36,9 +65,9 @@ class TestGetInitArgs(unittest.TestCase):
         with self.assertRaises(spickle.UnpicklingError):
             def nasty(module, function, *args):
                 return pickle.dumps(new.classobj(function, (), {
-                    '__getinitargs__': lambda self, arg = args: arg,
+                    '__getinitargs__': lambda self, arg=args: arg,
                     '__module__': module
-                    }) ())
+                })())
 
             t = nasty("subprocess", "Popen", ("/bin/ls", "/tmp"))
             spickle.loads(t)
@@ -50,10 +79,9 @@ class TestReduceAttack(unittest.TestCase):
         with self.assertRaises(spickle.UnpicklingError):
             spickle.loads(c)
 
-#    def test_attack_against_reconstructor(self):
-#        with self.assertRaises(spickle.UnpicklingError):
-#            spickle.loads(pickle.dumps(ReconstructorWithMorePickling()))
-
+        # def test_attack_against_reconstructor(self):
+        #        with self.assertRaises(spickle.UnpicklingError):
+        #            spickle.loads(pickle.dumps(ReconstructorWithMorePickling()))
 
     def test_functionality_remains(self):
         c = pickle.dumps(Macavity())

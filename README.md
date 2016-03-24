@@ -16,4 +16,4 @@ This implementation is currently based on https://github.com/python/cpython/blob
 The license for the original code can be found here: https://github.com/python/cpython/blob/master/LICENSE
 
 # Hall of Fame
-@wapiflapi - 1 vulnerability/exploit, 1 bug
+@wapiflapi - 2 vulnerability/exploit, 1 bug

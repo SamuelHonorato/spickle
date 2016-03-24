@@ -100,6 +100,10 @@ class TestWapiflapiAttack(unittest.TestCase):
         with self.assertRaises(spickle.UnpicklingError):
             spickle.loads("cspickle\nsys\n(}(S'__setstate__'\ncos\nsystem\ndtbS'ls'\nb.")
 
+    def test_corrupt_object_dict_update(self):
+        with self.assertRaises(spickle.UnpicklingError):
+            spickle.loads(spickle.loads("cspickle\n_EmptyClass\n(}(S'__dict__'\ncrequests\ncodes\npcache\n(}(S'update'\ncsubprocess\ncall\ndtbdtb(gcache\n(Vsh\nNu}tb."))
+
 # todo Investigate attacks directly against marshal
 
 

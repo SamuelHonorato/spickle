@@ -1043,6 +1043,8 @@ class Unpickler:
         for i in range(0, len(items), 2):
             key = items[i]
             value = items[i+1]
+            if hasattr(value, "__call__"):
+                raise UnpicklingError("Security: Attempts to add callable to dictionary")
             d[key] = value
         self.stack[k:] = [d]
     dispatch[DICT] = load_dict

@@ -96,6 +96,10 @@ class TestWapiflapiAttack(unittest.TestCase):
         with self.assertRaises(spickle.UnpicklingError):
             spickle.loads("cspickle\n__dict__\nS'mloads'\ncos\nsystem\nsJ;ls;.")
 
+    def test_set_state_abuse(self):
+        with self.assertRaises(spickle.UnpicklingError):
+            spickle.loads("cspickle\nsys\n(}(S'__setstate__'\ncos\nsystem\ndtbS'ls'\nb.")
+
 # todo Investigate attacks directly against marshal
 
 

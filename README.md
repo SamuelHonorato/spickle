@@ -14,3 +14,6 @@ will be recognized here.  Proof of concepts should be added to "tests.py".
 
 This implementation is currently based on https://github.com/python/cpython/blob/2.7/Lib/pickle.py
 The license for the original code can be found here: https://github.com/python/cpython/blob/master/LICENSE
+
+# Hall of Fame
+@wapiflapi - 1 vulnerability/exploit, 1 bug

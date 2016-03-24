@@ -1068,7 +1068,7 @@ class Unpickler:
                 # prohibited
                 pass
         if not instantiated:
-            raise UnpicklingError("Potentially malicious payload")
+            raise UnpicklingError("Security: Instantiating objects with arguments is disallowed")
             try:
                 #value = klass(*args)
                 value = None
@@ -1094,7 +1094,8 @@ class Unpickler:
     def load_newobj(self):
         args = self.stack.pop()
         cls = self.stack[-1]
-        #obj = cls.__new__(cls, *args)
+        raise UnpicklingError("Security: New object loading disabled")
+        obj = cls.__new__(cls, *args)
         obj = None
         self.stack[-1] = obj
     dispatch[NEWOBJ] = load_newobj
@@ -1149,7 +1150,9 @@ class Unpickler:
         func = stack[-1]
 
         if len(args) != 3 or func != _reconstructor:
-            raise UnpicklingError("Potentially malicious payload")
+            raise UnpicklingError("Security: Unacceptable reduce function use detected")
+
+        # Some potential room for abuse
         value = _reconstructor(args[0], args[1], args[2])
         stack[-1] = value
     dispatch[REDUCE] = load_reduce
@@ -1216,7 +1219,7 @@ class Unpickler:
         key = stack.pop()
         dict = stack[-1]
         if hasattr(value, "__call__"):
-            raise UnpicklingError("Security: Can't assign a callable to value in dict")
+            raise UnpicklingError("Security: Assigning callable to value in dict not allowed")
         dict[key] = value
     dispatch[SETITEM] = load_setitem
 

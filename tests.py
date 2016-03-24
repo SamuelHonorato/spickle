@@ -4,6 +4,7 @@ import pickle
 import new
 import subprocess
 import unittest
+import StringIO
 
 """
 Here we attempt attacks against Pickle which should not work in spickle.
@@ -17,6 +18,11 @@ class Macavity(object):
 class RunBinSh(object):
     def __reduce__(self):
         return (subprocess.Popen, (('/bin/ls', "/tmp"),))
+
+
+class ReconstructorWithMorePickling(object):
+    def __reduce__(self):
+        return (spickle._reconstructor, (pickle.Unpickler, str, StringIO.StringIO("csubprocess\nPopen\np0\n((S'/bin/ls'\np1\nS'/tmp'\np2\ntp3\ntp4\nRp5.")))
 
 
 class LegitimateGlobalAssignment(object):
@@ -43,6 +49,11 @@ class TestReduceAttack(unittest.TestCase):
         c = pickle.dumps(RunBinSh())
         with self.assertRaises(spickle.UnpicklingError):
             spickle.loads(c)
+
+    def test_attack_against_reconstructor(self):
+        with self.assertRaises(spickle.UnpicklingError):
+            spickle.loads(pickle.dumps(ReconstructorWithMorePickling()))
+
 
     def test_functionality_remains(self):
         c = pickle.dumps(Macavity())

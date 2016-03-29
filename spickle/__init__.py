@@ -33,7 +33,7 @@ Misc variables:
 __version__ = "$Revision: 72223 $"       # Code version
 
 from types import *
-from copy_reg import dispatch_table
+from copy_reg import dispatch_table, _reconstructor
 from copy_reg import _extension_registry, _inverted_registry, _extension_cache
 import marshal
 import sys
@@ -1043,6 +1043,8 @@ class Unpickler:
         for i in range(0, len(items), 2):
             key = items[i]
             value = items[i+1]
+            if hasattr(value, "__call__"):
+                raise UnpicklingError("Security: Attempts to add callable to dictionary")
             d[key] = value
         self.stack[k:] = [d]
     dispatch[DICT] = load_dict
@@ -1068,6 +1070,7 @@ class Unpickler:
                 # prohibited
                 pass
         if not instantiated:
+            raise UnpicklingError("Security: Instantiating objects with arguments is disallowed")
             try:
                 #value = klass(*args)
                 value = None
@@ -1093,7 +1096,8 @@ class Unpickler:
     def load_newobj(self):
         args = self.stack.pop()
         cls = self.stack[-1]
-        #obj = cls.__new__(cls, *args)
+        raise UnpicklingError("Security: New object loading disabled")
+        obj = cls.__new__(cls, *args)
         obj = None
         self.stack[-1] = obj
     dispatch[NEWOBJ] = load_newobj
@@ -1138,14 +1142,21 @@ class Unpickler:
         __import__(module)
         mod = sys.modules[module]
         klass = getattr(mod, name)
+        if hasattr(klass, "copy"):
+            klass = klass.copy()
         return klass
 
     def load_reduce(self):
         stack = self.stack
         args = stack.pop()
         func = stack[-1]
-        #value = func(*args)
-        stack[-1] = None
+
+        if len(args) != 3 or func != _reconstructor:
+            raise UnpicklingError("Security: Unacceptable reduce function use detected")
+
+        # Some potential room for abuse
+        value = _reconstructor(args[0], args[1], args[2])
+        stack[-1] = value
     dispatch[REDUCE] = load_reduce
 
     def load_pop(self):
@@ -1209,6 +1220,8 @@ class Unpickler:
         value = stack.pop()
         key = stack.pop()
         dict = stack[-1]
+        if hasattr(value, "__call__"):
+            raise UnpicklingError("Security: Assigning callable to value in dict not allowed")
         dict[key] = value
     dispatch[SETITEM] = load_setitem
 

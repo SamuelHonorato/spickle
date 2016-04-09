@@ -1,3 +1,5 @@
+It is quite likely that Pickle would either need a drastic reduction in functionality, or radical changes, in order to fix the terrible mess the developers made in Pickle.  Unfortunately, I have to consider this project a failure at this point.
+
 # spickle
 After finding quite a few implementations of Python projects continuing to use Pickle
 despite the security concerns, it has become somewhat obvious that there needs to be a
